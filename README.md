@@ -25,7 +25,22 @@ A modern, full-featured e-commerce platform built with **Django** and **Python**
 - Discount/sale prices with strikethrough
 - Featured products
 ## 📸 Screenshots
+## 📸 Screenshots
 
+### 🏠 Homepage
+![Homepage](homepage.png)
+
+### 🛍️ Product Detail
+![Product Detail](product-detail.png)
+
+### 🛒 Shopping Cart
+![Cart](cart.png)
+
+### ⚙️ Manager Dashboard
+![Dashboard](dashboard.png)
+
+### 🔐 Login
+![Login](login.png)
 ### 🏠 Homepage
 ![Homepage](screenshots/homepage.png)
 
