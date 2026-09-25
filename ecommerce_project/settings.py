@@ -10,25 +10,44 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
+import dj_database_url
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
+# ==========================================================
+# SECURITY
+# ==========================================================
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-fig5qv350b+*=dv#kk!5bwg3@m_o_h!$06)(f#=oz=h%2xbu-o'
+# SECRET_KEY — Render pe environment variable se aayega, local me fallback
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-fig5qv350b+*=dv#kk!5bwg3@m_o_h!$06)(f#=oz=h%2xbu-o'
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG — Render pe automatically False, local me True
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+DEBUG = not bool(RENDER_EXTERNAL_HOSTNAME)
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS — Render domain + local
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.onrender.com',
+]
+
+# CSRF trusted origins for Render
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
+]
 
 
-# Application definition
+# ==========================================================
+# APPLICATIONS
+# ==========================================================
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -40,8 +59,14 @@ INSTALLED_APPS = [
     'store',
 ]
 
+
+# ==========================================================
+# MIDDLEWARE — WhiteNoise for static files
+# ==========================================================
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ← Added for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -51,6 +76,11 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'ecommerce_project.urls'
+
+
+# ==========================================================
+# TEMPLATES
+# ==========================================================
 
 TEMPLATES = [
     {
@@ -72,19 +102,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ecommerce_project.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/6.1/ref/settings/#databases
+# ==========================================================
+# DATABASE — PostgreSQL on Render, SQLite locally
+# ==========================================================
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get(
+            'DATABASE_URL',
+            f'sqlite:///{BASE_DIR / "db.sqlite3"}'
+        ),
+        conn_max_age=600,
+        ssl_require=bool(os.environ.get('DATABASE_URL'))
+    )
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
+# ==========================================================
+# PASSWORD VALIDATION
+# ==========================================================
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -102,46 +138,99 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/6.1/topics/i18n/
+# ==========================================================
+# INTERNATIONALIZATION
+# ==========================================================
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'  # ← India timezone
 
 USE_I18N = True
 
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.1/howto/static-files/
+# ==========================================================
+# STATIC FILES — WhiteNoise configuration
+# ==========================================================
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# WhiteNoise compressed manifest storage
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Whitenoise settings
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = DEBUG
 
 
-# Email
-# https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
+# ==========================================================
+# MEDIA FILES
+# ==========================================================
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# ==========================================================
+# DEFAULT PRIMARY KEY
+# ==========================================================
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# ==========================================================
+# AUTHENTICATION URLS
+# ==========================================================
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+LOGIN_URL = '/accounts/login/'
+
+
+# ==========================================================
+# MESSAGES
+# ==========================================================
+
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {messages.ERROR: 'danger'}
+
+
+# ==========================================================
+# EMAIL
+# ==========================================================
 
 MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
-LOGIN_URL = '/accounts/login/'
+# ==========================================================
+# CURRENCY / LOCALE
+# ==========================================================
 
-from django.contrib.messages import constants as messages
-MESSAGE_TAGS = {messages.ERROR: 'danger'}
-
-# ===== Currency / Locale =====
 USE_THOUSAND_SEPARATOR = True
 THOUSAND_SEPARATOR = ','
 DECIMAL_SEPARATOR = '.'
+
+
+# ==========================================================
+# PRODUCTION SECURITY (only on Render)
+# ==========================================================
+
+if not DEBUG:
+    # HTTPS
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    # Proxy header
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
