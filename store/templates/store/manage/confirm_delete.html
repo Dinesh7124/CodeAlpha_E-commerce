@@ -1,0 +1,16 @@
+﻿{% extends 'store/base.html' %}
+{% block title %}Confirm Delete{% endblock %}
+{% block content %}
+<div class="fade-in" style="max-width:500px;margin:60px auto;">
+    <div class="delete-confirm">
+        <div class="warn-icon">⚠️</div>
+        <h1>Delete {{ type }}?</h1>
+        <p>Are you sure you want to delete <strong>{{ object }}</strong>? This cannot be undone.</p>
+        <form method="post" class="form-actions">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">🗑️ Yes, Delete</button>
+            <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+﻿{% extends 'store/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="fade-in">
+    <h1>{{ title }}</h1>
+    <form method="post" enctype="multipart/form-data" class="manage-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 Save</button>
+            <a href="{% url 'store:manage_categories' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

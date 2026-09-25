@@ -1,0 +1,11 @@
+﻿{% extends 'store/base.html' %}
+{% block title %}Checkout{% endblock %}
+{% block content %}
+<h1>Checkout</h1>
+<form method="post" class="checkout-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <p class="cart-total"><strong>Total: ₹{{ cart.get_total_price }}</strong></p>
+    <button type="submit" class="btn btn-primary">Place Order</button>
+</form>
+{% endblock %}

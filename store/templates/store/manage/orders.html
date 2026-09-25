@@ -1,0 +1,25 @@
+﻿{% extends 'store/base.html' %}
+{% block title %}Manage Orders{% endblock %}
+{% block content %}
+<div class="fade-in">
+    <h1>🛒 Orders</h1>
+    <table class="manage-table">
+        <thead><tr><th>ID</th><th>User</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th><th></th></tr></thead>
+        <tbody>
+            {% for o in orders %}
+                <tr>
+                    <td><strong>#{{ o.id }}</strong></td>
+                    <td>{{ o.user.username }}</td>
+                    <td>{{ o.get_total_items }}</td>
+                    <td>₹{{ o.total }}</td>
+                    <td><span class="status status-{{ o.status }}">{{ o.get_status_display }}</span></td>
+                    <td>{{ o.created|date:"M d, Y" }}</td>
+                    <td><a href="{% url 'store:manage_order_detail' o.id %}" class="btn-sm">View →</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="7" class="muted" style="text-align:center;padding:40px;">No orders yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

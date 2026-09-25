@@ -1,0 +1,34 @@
+﻿{% extends 'store/base.html' %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+{% block content %}
+<div class="fade-in">
+    <h1>Order #{{ order.id }}</h1>
+    <p class="muted">Placed on {{ order.created|date:"F d, Y" }}</p>
+
+    <div class="manage-panel" style="margin-top:20px;">
+        <h3>Shipping Details</h3>
+        <p><strong>{{ order.first_name }} {{ order.last_name }}</strong></p>
+        <p>{{ order.email }}</p>
+        <p>{{ order.address }}, {{ order.city }} - {{ order.postal_code }}</p>
+        <p>Status: <span class="status status-{{ order.status }}">{{ order.get_status_display }}</span></p>
+    </div>
+
+    <h2 style="margin-top:30px;">Items</h2>
+    <table class="manage-table">
+        <thead><tr><th>Product</th><th>Price</th><th>Qty</th><th>Total</th></tr></thead>
+        <tbody>
+            {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>₹{{ item.price }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ item.get_cost }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr><td colspan="3" style="text-align:right;"><strong>Total:</strong></td><td><strong>₹{{ order.total }}</strong></td></tr>
+        </tfoot>
+    </table>
+</div>
+{% endblock %}

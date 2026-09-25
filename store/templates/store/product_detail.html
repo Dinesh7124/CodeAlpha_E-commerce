@@ -1,0 +1,348 @@
+﻿{% extends 'store/base.html' %}
+{% block title %}{{ product.name }} - MyShop{% endblock %}
+{% block content %}
+
+<div class="product-detail">
+    <!-- IMAGE GALLERY / SLIDER -->
+    <div class="product-gallery">
+        <div class="gallery-main" id="galleryMain">
+            {% if gallery_images %}
+                {% for img in gallery_images %}
+                    <img src="{{ img.url }}"
+                         alt="{{ product.name }}"
+                         class="gallery-slide {% if forloop.first %}active{% endif %}"
+                         data-index="{{ forloop.counter0 }}">
+                {% endfor %}
+            {% else %}
+                <div class="placeholder-img" style="height:500px;font-size:80px;">🖼️</div>
+            {% endif %}
+
+            {% if gallery_images|length > 1 %}
+                <button class="gallery-nav gallery-prev" onclick="slideImage(-1)">‹</button>
+                <button class="gallery-nav gallery-next" onclick="slideImage(1)">›</button>
+                <div class="gallery-dots" id="galleryDots">
+                    {% for img in gallery_images %}
+                        <span class="dot {% if forloop.first %}active{% endif %}" onclick="goToImage({{ forloop.counter0 }})"></span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if product.get_discount_percent %}
+                <span class="badge badge-sale" style="top:20px;right:20px;font-size:14px;padding:8px 16px;">
+                    -{{ product.get_discount_percent }}% OFF
+                </span>
+            {% endif %}
+        </div>
+
+        {% if gallery_images|length > 1 %}
+            <div class="gallery-thumbs">
+                {% for img in gallery_images %}
+                    <div class="gallery-thumb {% if forloop.first %}active{% endif %}"
+                         onclick="goToImage({{ forloop.counter0 }})">
+                        <img src="{{ img.url }}" alt="thumb">
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- PRODUCT INFO -->
+    <div class="product-info">
+        <span class="product-category">{{ product.category.name }}</span>
+        <h1>{{ product.name }}</h1>
+
+        {% if product.average_rating %}
+            <div class="product-rating" style="font-size:16px;margin:8px 0;">
+                <span class="stars">⭐ {{ product.average_rating }}/5</span>
+                <span style="color:var(--gray-600);font-size:13px;">({{ reviews|length }} review{{ reviews|length|pluralize }})</span>
+            </div>
+        {% endif %}
+
+        <div class="price">
+            ₹{{ product.get_price }}
+            {% if product.discount_price %}
+                <span class="price-old">₹{{ product.price }}</span>
+                <span class="badge badge-sale" style="position:static;margin-left:8px;">Save ₹{{ product.price|add:"-"|add:product.discount_price }}</span>
+            {% endif %}
+        </div>
+
+        <p>{{ product.description }}</p>
+
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin:20px 0;font-size:14px;">
+            <span><strong style="color:{% if product.stock > 0 %}var(--accent){% else %}var(--danger){% endif %};">●</strong> {% if product.stock > 0 %}In Stock ({{ product.stock }} available){% else %}Out of Stock{% endif %}</span>
+            {% if product.featured %}<span>⭐ Featured Product</span>{% endif %}
+        </div>
+
+        {% if product.stock > 0 %}
+            <div class="quantity-selector">
+                <button type="button" onclick="changeQty(-1)">−</button>
+                <input type="number" id="qty" value="1" min="1" max="{{ product.stock }}">
+                <button type="button" onclick="changeQty(1)">+</button>
+            </div>
+
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;">
+                <button class="btn btn-success btn-lg" onclick="addToCart()">
+                    🛒 Add to Cart
+                </button>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'store:wishlist_toggle' product.id %}" class="btn btn-ghost btn-lg">
+                        {% if in_wishlist %}💔 Remove{% else %}❤️ Wishlist{% endif %}
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-ghost btn-lg">❤️ Wishlist</a>
+                {% endif %}
+            </div>
+        {% else %}
+            <p class="out-of-stock">Out of Stock</p>
+        {% endif %}
+
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--gray-200);display:flex;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--gray-600);">
+            <span>🚚 Free delivery</span>
+            <span>↩️ 7-day return</span>
+            <span>🔒 Secure payment</span>
+        </div>
+    </div>
+</div>
+
+<!-- REVIEWS SECTION -->
+<div class="manage-panel" style="margin-top:40px;">
+    <h2>📝 Customer Reviews ({{ reviews|length }})</h2>
+
+    {% if user.is_authenticated %}
+        <form method="post" style="background:var(--gray-100);padding:20px;border-radius:var(--radius);margin:20px 0;">
+            {% csrf_token %}
+            <h3 style="font-size:15px;margin-bottom:12px;">{% if user_review %}Update your review{% else %}Write a review{% endif %}</h3>
+            <div style="display:grid;gap:12px;">
+                {{ review_form.as_p }}
+            </div>
+            <button type="submit" class="btn btn-primary">{% if user_review %}Update Review{% else %}Submit Review{% endif %}</button>
+        </form>
+    {% else %}
+        <p class="muted" style="margin:20px 0;">
+            <a href="{% url 'login' %}" style="color:var(--primary);font-weight:700;">Login</a> to write a review.
+        </p>
+    {% endif %}
+
+    {% if reviews %}
+        <div style="display:grid;gap:16px;margin-top:20px;">
+            {% for review in reviews %}
+                <div style="padding:16px;background:var(--gray-100);border-radius:var(--radius);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <strong>{{ review.user.username }}</strong>
+                        <span class="stars">{% for i in "12345"|slice:review.rating %}{% endfor %}{{ review.rating }}/5</span>
+                    </div>
+                    <p style="font-size:14px;">{{ review.comment }}</p>
+                    <small style="color:var(--gray-400);">{{ review.created|date:"M d, Y" }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted">No reviews yet. Be the first!</p>
+    {% endif %}
+</div>
+
+<!-- RELATED PRODUCTS -->
+{% if related %}
+    <h2 style="margin-top:48px;margin-bottom:24px;">🔗 You may also like</h2>
+    <div class="product-grid">
+        {% for p in related %}
+            <div class="product-card">
+                <div class="product-img-wrap">
+                    <a href="{{ p.get_absolute_url }}">
+                        {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.name }}">{% else %}<div class="placeholder-img">🖼️</div>{% endif %}
+                    </a>
+                </div>
+                <div class="product-info">
+                    <h3><a href="{{ p.get_absolute_url }}">{{ p.name }}</a></h3>
+                    <div class="price">₹{{ p.get_price }}</div>
+                    <a href="{% url 'store:cart_add' p.id %}" class="btn btn-success btn-full">🛒 Add to Cart</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<style>
+/* ============ GALLERY SLIDER ============ */
+.product-gallery { position: relative; }
+.gallery-main {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--gray-100);
+    aspect-ratio: 1/1;
+    box-shadow: var(--shadow-lg);
+}
+.gallery-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transform: scale(1.05);
+    transition: opacity 0.6s ease, transform 0.8s ease;
+    pointer-events: none;
+}
+.gallery-slide.active {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+}
+.gallery-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    border: none;
+    border-radius: 50%;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--dark);
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: all 0.25s ease;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding-bottom: 4px;
+}
+.gallery-nav:hover {
+    background: var(--primary);
+    color: var(--white);
+    transform: translateY(-50%) scale(1.1);
+}
+.gallery-prev { left: 16px; }
+.gallery-next { right: 16px; }
+
+.gallery-dots {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 5;
+    background: rgba(0,0,0,0.4);
+    padding: 8px 14px;
+    border-radius: var(--radius-full);
+    backdrop-filter: blur(10px);
+}
+.gallery-dots .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.gallery-dots .dot.active {
+    background: var(--white);
+    width: 28px;
+    border-radius: var(--radius-full);
+}
+.gallery-dots .dot:hover { background: rgba(255,255,255,0.8); }
+
+/* Thumbnails */
+.gallery-thumbs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+}
+.gallery-thumb {
+    aspect-ratio: 1/1;
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.25s ease;
+    background: var(--gray-100);
+}
+.gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+.gallery-thumb:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.gallery-thumb:hover img { transform: scale(1.1); }
+.gallery-thumb.active {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+}
+
+@media (max-width: 700px) {
+    .gallery-nav { width: 40px; height: 40px; font-size: 24px; }
+    .gallery-thumbs { grid-template-columns: repeat(4, 1fr); }
+}
+</style>
+
+<script>
+let currentImageIndex = 0;
+const totalImages = {{ gallery_images|length }};
+
+function goToImage(index) {
+    if (totalImages === 0) return;
+    index = ((index % totalImages) + totalImages) % totalImages;
+    currentImageIndex = index;
+
+    document.querySelectorAll('.gallery-slide').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+    });
+    document.querySelectorAll('.gallery-thumb').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+    });
+    document.querySelectorAll('.gallery-dots .dot').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+    });
+}
+
+function slideImage(dir) {
+    goToImage(currentImageIndex + dir);
+}
+
+function changeQty(delta) {
+    const input = document.getElementById('qty');
+    let v = parseInt(input.value) + delta;
+    const min = parseInt(input.min);
+    const max = parseInt(input.max);
+    if (v < min) v = min;
+    if (v > max) v = max;
+    input.value = v;
+}
+
+function addToCart() {
+    const qty = document.getElementById('qty').value;
+    window.location.href = "{% url 'store:cart_add' product.id %}?quantity=" + qty;
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') slideImage(-1);
+    if (e.key === 'ArrowRight') slideImage(1);
+});
+
+// Touch swipe
+let touchStartX = 0;
+document.addEventListener('DOMContentLoaded', () => {
+    const main = document.querySelector('.gallery-main');
+    if (!main) return;
+    main.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+    });
+    main.addEventListener('touchend', (e) => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) {
+            slideImage(diff > 0 ? 1 : -1);
+        }
+    });
+});
+</script>
+
+{% endblock %}

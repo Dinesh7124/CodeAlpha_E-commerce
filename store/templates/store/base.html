@@ -1,0 +1,72 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MyShop - Premium Store{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+<header>
+    <div class="container nav">
+        <a href="{% url 'store:product_list' %}" class="logo">
+            <span class="logo-icon">🛒</span>
+            <span>MyShop</span>
+        </a>
+
+        <form class="search-form" action="{% url 'store:product_list' %}" method="get">
+            <input type="text" name="q" placeholder="Search products..." value="{{ query|default:'' }}" autocomplete="off">
+        </form>
+
+        <nav>
+            <a href="{% url 'store:product_list' %}">🏠 Home</a>
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'store:wishlist' %}">❤️ Wishlist</a>
+                <a href="{% url 'store:order_history' %}">📦 Orders</a>
+                {% if user.is_staff %}
+                    <a href="{% url 'store:manage_dashboard' %}" class="manager-link">⚙️ Manage</a>
+                {% endif %}
+                <span class="user-greeting">👋 {{ user.username }}</span>
+                <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">Logout</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'store:register' %}">Register</a>
+            {% endif %}
+
+            <a href="{% url 'store:cart_detail' %}" class="cart-link {% if cart|length %}has-items{% endif %}">
+                🛒 Cart <span class="cart-count">({{ cart|length }})</span>
+            </a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    <div class="container">
+        <p>© 2026 <strong>MyShop</strong> — Crafted with ❤️ using Django</p>
+        <p style="opacity:0.6;font-size:12px;">Premium E-commerce Experience</p>
+    </div>
+</footer>
+
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

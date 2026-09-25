@@ -1,0 +1,31 @@
+﻿{% extends 'store/base.html' %}
+{% block title %}My Orders{% endblock %}
+{% block content %}
+<div class="fade-in">
+    <h1>📦 My Orders</h1>
+    {% if orders %}
+        <table class="manage-table">
+            <thead><tr><th>Order #</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+                {% for o in orders %}
+                    <tr>
+                        <td><strong>#{{ o.id }}</strong></td>
+                        <td>{{ o.created|date:"M d, Y" }}</td>
+                        <td>{{ o.get_total_items }}</td>
+                        <td>₹{{ o.total }}</td>
+                        <td><span class="status status-{{ o.status }}">{{ o.get_status_display }}</span></td>
+                        <td><a href="{% url 'store:order_detail' o.id %}" class="btn-sm">View →</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty-state">
+            <div class="icon">📦</div>
+            <h2>No orders yet</h2>
+            <p>Your order history will appear here.</p>
+            <a href="{% url 'store:product_list' %}" class="btn btn-primary">Start Shopping</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
