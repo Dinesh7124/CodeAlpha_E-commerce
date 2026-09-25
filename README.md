@@ -24,7 +24,22 @@ A modern, full-featured e-commerce platform built with **Django** and **Python**
 - Reviews & 5-star ratings
 - Discount/sale prices with strikethrough
 - Featured products
+## 📸 Screenshots
 
+### 🏠 Homepage
+![Homepage](screenshots/homepage.png)
+
+### 🛍️ Product Detail
+![Product Detail](screenshots/product-detail.png)
+
+### 🛒 Shopping Cart
+![Cart](screenshots/cart.png)
+
+### ⚙️ Manager Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### 🔐 Login
+![Login](screenshots/login.png)
 ### ⚙️ Manager Dashboard
 - Animated stats with counters (revenue in ₹)
 - Product CRUD from UI
