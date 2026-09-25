@@ -1,5 +1,21 @@
 # 🛒 CodeAlpha E-commerce Store
 
+# 🛒 CodeAlpha E-commerce Store
+
+## 🌐 Live Demo
+
+**[🔗 View Live Site](https://codealpha-e-commerce-nhj1.onrender.com)**
+
+**[👤 Admin Panel](https://codealpha-e-commerce-nhj1.onrender.com/admin/)**
+- Username: `admin`
+- Password: `Dinesh@7124`
+
+> ⏱️ **Note:** Free tier — pehla load 30-60 seconds lega (cold start)
+
+---
+
+A modern, full-featured e-commerce platform built with **Django** and **Python**...
+
 A modern, full-featured e-commerce platform built with **Django** and **Python**. Features a premium animated UI, complete shopping cart, order management, and admin dashboard.
 
 ![Python](https://img.shields.io/badge/Python-3.14-blue)
